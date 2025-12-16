@@ -11,8 +11,12 @@ RUN cd backend && npm install
 # Copy application code
 COPY . .
 
+# Copy start script
+COPY start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
 # Expose port
 EXPOSE 5000
 
-# Start backend using shell form
-CMD sh -c "node /app/backend/server.js"
+# Start backend
+ENTRYPOINT ["/app/start.sh"]
