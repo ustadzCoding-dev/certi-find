@@ -6,15 +6,13 @@ WORKDIR /app
 COPY backend/package*.json ./backend/
 
 # Install backend dependencies
-WORKDIR /app/backend
-RUN npm install
+RUN cd backend && npm install
 
 # Copy application code
-WORKDIR /app
 COPY . .
 
 # Expose port
 EXPOSE 5000
 
-# Start backend
-CMD ["node", "/app/backend/server.js"]
+# Start backend using shell form
+CMD sh -c "node /app/backend/server.js"
