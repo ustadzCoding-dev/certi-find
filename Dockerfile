@@ -5,10 +5,12 @@ WORKDIR /app
 # Copy backend package files
 COPY backend/package*.json ./backend/
 
-# Install backend dependencies
-RUN cd backend && npm install
+# Install backend dependencies in backend directory
+WORKDIR /app/backend
+RUN npm install
 
-# Copy application code
+# Copy application code back to app root
+WORKDIR /app
 COPY . .
 
 # Copy start script
