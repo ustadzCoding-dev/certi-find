@@ -1,4 +1,5 @@
-const Certification = require('../models/Certification');
+const { Certification, User } = require('../models');
+const { Op } = require('sequelize');
 
 // @desc    Get all certifications (with filters)
 // @route   GET /api/certifications
@@ -11,44 +12,49 @@ const getCertifications = async (req, res) => {
             search,
             page = 1,
             limit = 12,
-            sort = '-createdAt',
+            sort = 'createdAt',
         } = req.query;
 
-        // Build query
-        const query = { isActive: true };
+        // Build where clause
+        const where = { isActive: true };
 
         if (category && category !== 'all') {
-            query.category = category;
+            where.category = category;
         }
 
         if (level && level !== 'all') {
-            query.level = level;
+            where.level = level;
         }
 
         if (search) {
-            query.$text = { $search: search };
+            where[Op.or] = [
+                { title: { [Op.like]: `%${search}%` } },
+                { description: { [Op.like]: `%${search}%` } },
+                { provider: { [Op.like]: `%${search}%` } },
+            ];
         }
 
         // Execute query with pagination
-        const skip = (parseInt(page) - 1) * parseInt(limit);
+        const offset = (parseInt(page) - 1) * parseInt(limit);
+        const order = sort.startsWith('-') ? [[sort.slice(1), 'DESC']] : [[sort, 'ASC']];
 
-        const certifications = await Certification.find(query)
-            .sort(sort)
-            .skip(skip)
-            .limit(parseInt(limit))
-            .select('-__v');
-
-        const total = await Certification.countDocuments(query);
+        const { count, rows } = await Certification.findAndCountAll({
+            where,
+            include: [{ model: User, as: 'creator', attributes: ['id', 'name'] }],
+            order,
+            offset,
+            limit: parseInt(limit),
+        });
 
         res.json({
             success: true,
             data: {
-                certifications,
+                certifications: rows,
                 pagination: {
                     page: parseInt(page),
                     limit: parseInt(limit),
-                    total,
-                    pages: Math.ceil(total / parseInt(limit)),
+                    total: count,
+                    pages: Math.ceil(count / parseInt(limit)),
                 },
             },
         });
@@ -66,8 +72,9 @@ const getCertifications = async (req, res) => {
 // @access  Public
 const getCertificationById = async (req, res) => {
     try {
-        const certification = await Certification.findById(req.params.id)
-            .populate('createdBy', 'name');
+        const certification = await Certification.findByPk(req.params.id, {
+            include: [{ model: User, as: 'creator', attributes: ['id', 'name'] }],
+        });
 
         if (!certification) {
             return res.status(404).json({
@@ -84,15 +91,6 @@ const getCertificationById = async (req, res) => {
         });
     } catch (error) {
         console.error('GetCertificationById error:', error);
-
-        // Handle invalid ObjectId
-        if (error.kind === 'ObjectId') {
-            return res.status(404).json({
-                success: false,
-                message: 'Certification not found',
-            });
-        }
-
         res.status(500).json({
             success: false,
             message: 'Server error',
@@ -108,29 +106,24 @@ const getCertificationsByCategory = async (req, res) => {
         const { category } = req.params;
         const { page = 1, limit = 12 } = req.query;
 
-        const query = {
-            category,
-            isActive: true
-        };
+        const offset = (parseInt(page) - 1) * parseInt(limit);
 
-        const skip = (parseInt(page) - 1) * parseInt(limit);
-
-        const certifications = await Certification.find(query)
-            .sort('-createdAt')
-            .skip(skip)
-            .limit(parseInt(limit));
-
-        const total = await Certification.countDocuments(query);
+        const { count, rows } = await Certification.findAndCountAll({
+            where: { category, isActive: true },
+            order: [['createdAt', 'DESC']],
+            offset,
+            limit: parseInt(limit),
+        });
 
         res.json({
             success: true,
             data: {
-                certifications,
+                certifications: rows,
                 pagination: {
                     page: parseInt(page),
                     limit: parseInt(limit),
-                    total,
-                    pages: Math.ceil(total / parseInt(limit)),
+                    total: count,
+                    pages: Math.ceil(count / parseInt(limit)),
                 },
             },
         });
@@ -149,7 +142,7 @@ const getCertificationsByCategory = async (req, res) => {
 const createCertification = async (req, res) => {
     try {
         // Add admin user as creator
-        req.body.createdBy = req.user._id;
+        req.body.createdBy = req.user.id;
 
         // Handle skills if it's a comma-separated string
         if (typeof req.body.skills === 'string') {
@@ -184,11 +177,7 @@ const updateCertification = async (req, res) => {
             req.body.skills = req.body.skills.split(',').map(s => s.trim()).filter(Boolean);
         }
 
-        const certification = await Certification.findByIdAndUpdate(
-            req.params.id,
-            req.body,
-            { new: true, runValidators: true }
-        );
+        const certification = await Certification.findByPk(req.params.id);
 
         if (!certification) {
             return res.status(404).json({
@@ -196,6 +185,8 @@ const updateCertification = async (req, res) => {
                 message: 'Certification not found',
             });
         }
+
+        await certification.update(req.body);
 
         res.json({
             success: true,
@@ -206,14 +197,6 @@ const updateCertification = async (req, res) => {
         });
     } catch (error) {
         console.error('UpdateCertification error:', error);
-
-        if (error.kind === 'ObjectId') {
-            return res.status(404).json({
-                success: false,
-                message: 'Certification not found',
-            });
-        }
-
         res.status(500).json({
             success: false,
             message: 'Server error while updating certification',
@@ -226,7 +209,7 @@ const updateCertification = async (req, res) => {
 // @access  Private/Admin
 const deleteCertification = async (req, res) => {
     try {
-        const certification = await Certification.findByIdAndDelete(req.params.id);
+        const certification = await Certification.findByPk(req.params.id);
 
         if (!certification) {
             return res.status(404).json({
@@ -235,20 +218,14 @@ const deleteCertification = async (req, res) => {
             });
         }
 
+        await certification.destroy();
+
         res.json({
             success: true,
             message: 'Certification deleted successfully',
         });
     } catch (error) {
         console.error('DeleteCertification error:', error);
-
-        if (error.kind === 'ObjectId') {
-            return res.status(404).json({
-                success: false,
-                message: 'Certification not found',
-            });
-        }
-
         res.status(500).json({
             success: false,
             message: 'Server error while deleting certification',

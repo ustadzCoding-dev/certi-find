@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const { User } = require('../models');
 const { sendWelcomeEmail, sendAdminNewUserEmail } = require('../services/emailService');
 
 // Generate JWT token
@@ -17,7 +17,7 @@ const register = async (req, res) => {
         const { name, email, password, interestField } = req.body;
 
         // Check if user exists
-        const userExists = await User.findOne({ email });
+        const userExists = await User.findOne({ where: { email } });
         if (userExists) {
             return res.status(400).json({
                 success: false,
@@ -34,13 +34,13 @@ const register = async (req, res) => {
         });
 
         // Generate token
-        const token = generateToken(user._id);
+        const token = generateToken(user.id);
 
         // Send welcome email (async, don't wait)
         sendWelcomeEmail(user).catch(console.error);
 
         // Notify admin about new user (async)
-        const admins = await User.find({ role: 'admin' }).select('email');
+        const admins = await User.findAll({ where: { role: 'admin' } });
         if (admins.length > 0) {
             sendAdminNewUserEmail(admins[0].email, user).catch(console.error);
         }
@@ -51,7 +51,7 @@ const register = async (req, res) => {
             data: {
                 token,
                 user: {
-                    _id: user._id,
+                    id: user.id,
                     name: user.name,
                     email: user.email,
                     role: user.role,
@@ -75,8 +75,8 @@ const login = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        // Check for user (include password for comparison)
-        const user = await User.findOne({ email }).select('+password');
+        // Check for user
+        const user = await User.findOne({ where: { email } });
 
         if (!user) {
             return res.status(401).json({
@@ -103,7 +103,7 @@ const login = async (req, res) => {
         }
 
         // Generate token
-        const token = generateToken(user._id);
+        const token = generateToken(user.id);
 
         res.json({
             success: true,
@@ -111,7 +111,7 @@ const login = async (req, res) => {
             data: {
                 token,
                 user: {
-                    _id: user._id,
+                    id: user.id,
                     name: user.name,
                     email: user.email,
                     role: user.role,
@@ -133,7 +133,7 @@ const login = async (req, res) => {
 // @access  Private
 const getMe = async (req, res) => {
     try {
-        const user = await User.findById(req.user._id);
+        const user = await User.findByPk(req.user.id);
 
         res.json({
             success: true,
@@ -157,7 +157,7 @@ const updateProfile = async (req, res) => {
     try {
         const { name, interestField, currentPassword, newPassword } = req.body;
 
-        const user = await User.findById(req.user._id).select('+password');
+        const user = await User.findByPk(req.user.id);
 
         // Update basic info
         if (name) user.name = name;
@@ -183,7 +183,7 @@ const updateProfile = async (req, res) => {
             message: 'Profile updated successfully',
             data: {
                 user: {
-                    _id: user._id,
+                    id: user.id,
                     name: user.name,
                     email: user.email,
                     role: user.role,

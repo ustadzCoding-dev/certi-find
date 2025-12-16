@@ -1,84 +1,84 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
 
-const certificationSchema = new mongoose.Schema(
-    {
-        title: {
-            type: String,
-            required: [true, 'Title is required'],
-            trim: true,
-            maxlength: [200, 'Title cannot exceed 200 characters'],
-        },
-        provider: {
-            type: String,
-            required: [true, 'Provider is required'],
-            trim: true,
-        },
-        category: {
-            type: String,
-            required: [true, 'Category is required'],
-            enum: ['IT', 'Data Science', 'Business', 'Design', 'Marketing', 'Other'],
-        },
-        description: {
-            type: String,
-            required: [true, 'Description is required'],
-            minlength: [50, 'Description must be at least 50 characters'],
-        },
-        duration: {
-            type: String,
-            required: [true, 'Duration is required'],
-        },
-        level: {
-            type: String,
-            required: [true, 'Level is required'],
-            enum: ['Beginner', 'Intermediate', 'Advanced'],
-        },
-        isFree: {
-            type: Boolean,
-            default: true,
-        },
-        freeNote: {
-            type: String,
-            trim: true,
-        },
-        url: {
-            type: String,
-            required: [true, 'URL is required'],
-            match: [/^https?:\/\/.+/, 'Please enter a valid URL'],
-        },
-        skills: [{
-            type: String,
-            trim: true,
-        }],
-        certificateType: {
-            type: String,
-            default: 'Certificate of Completion',
-        },
-        language: {
-            type: String,
-            default: 'English',
-        },
-        thumbnail: {
-            type: String,
-        },
-        createdBy: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User',
-            required: true,
-        },
-        isActive: {
-            type: Boolean,
-            default: true,
+const Certification = sequelize.define('Certification', {
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+    },
+    title: {
+        type: DataTypes.STRING(200),
+        allowNull: false,
+    },
+    provider: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    category: {
+        type: DataTypes.ENUM('IT', 'Data Science', 'Business', 'Design', 'Marketing', 'Other'),
+        allowNull: false,
+    },
+    description: {
+        type: DataTypes.TEXT,
+        allowNull: false,
+    },
+    duration: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    level: {
+        type: DataTypes.ENUM('Beginner', 'Intermediate', 'Advanced'),
+        allowNull: false,
+    },
+    isFree: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true,
+    },
+    freeNote: {
+        type: DataTypes.STRING,
+    },
+    url: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+            isUrl: true,
         },
     },
-    {
-        timestamps: true,
-    }
-);
+    skills: {
+        type: DataTypes.JSON,
+        defaultValue: [],
+    },
+    certificateType: {
+        type: DataTypes.STRING,
+        defaultValue: 'Certificate of Completion',
+    },
+    language: {
+        type: DataTypes.STRING,
+        defaultValue: 'English',
+    },
+    thumbnail: {
+        type: DataTypes.STRING,
+    },
+    createdBy: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'Users',
+            key: 'id',
+        },
+    },
+    isActive: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true,
+    },
+}, {
+    timestamps: true,
+    indexes: [
+        { fields: ['category'] },
+        { fields: ['level'] },
+        { fields: ['isActive'] },
+    ],
+});
 
-// Index for search and filtering
-certificationSchema.index({ title: 'text', description: 'text', provider: 'text' });
-certificationSchema.index({ category: 1 });
-certificationSchema.index({ level: 1 });
-certificationSchema.index({ isActive: 1 });
-
-module.exports = mongoose.model('Certification', certificationSchema);
+module.exports = Certification;

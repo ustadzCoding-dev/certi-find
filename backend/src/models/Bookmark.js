@@ -1,24 +1,36 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
 
-const bookmarkSchema = new mongoose.Schema(
-    {
-        userId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User',
-            required: true,
-        },
-        certificationId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Certification',
-            required: true,
+const Bookmark = sequelize.define('Bookmark', {
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+    },
+    userId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'Users',
+            key: 'id',
         },
     },
-    {
-        timestamps: true,
-    }
-);
+    certificationId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'Certifications',
+            key: 'id',
+        },
+    },
+}, {
+    timestamps: true,
+    indexes: [
+        {
+            fields: ['userId', 'certificationId'],
+            unique: true,
+        },
+    ],
+});
 
-// Compound unique index to prevent duplicate bookmarks
-bookmarkSchema.index({ userId: 1, certificationId: 1 }, { unique: true });
-
-module.exports = mongoose.model('Bookmark', bookmarkSchema);
+module.exports = Bookmark;

@@ -1,5 +1,4 @@
-const Bookmark = require('../models/Bookmark');
-const Certification = require('../models/Certification');
+const { Bookmark, Certification } = require('../models');
 const { sendBookmarkEmail } = require('../services/emailService');
 
 // @desc    Get user's bookmarks
@@ -7,12 +6,14 @@ const { sendBookmarkEmail } = require('../services/emailService');
 // @access  Private
 const getBookmarks = async (req, res) => {
     try {
-        const bookmarks = await Bookmark.find({ userId: req.user._id })
-            .populate({
-                path: 'certificationId',
-                select: 'title provider category level duration isFree description thumbnail skills',
-            })
-            .sort('-createdAt');
+        const bookmarks = await Bookmark.findAll({
+            where: { userId: req.user.id },
+            include: [{
+                model: Certification,
+                attributes: ['id', 'title', 'provider', 'category', 'level', 'duration', 'isFree', 'description', 'thumbnail', 'skills'],
+            }],
+            order: [['createdAt', 'DESC']],
+        });
 
         res.json({
             success: true,
@@ -31,14 +32,14 @@ const getBookmarks = async (req, res) => {
 };
 
 // @desc    Add bookmark
-// @route   POST /api/bookmarks
+// @route   POST /api/bookmarks/:certId
 // @access  Private
 const addBookmark = async (req, res) => {
     try {
-        const { certificationId } = req.body;
+        const certificationId = req.params.certId;
 
         // Check if certification exists
-        const certification = await Certification.findById(certificationId);
+        const certification = await Certification.findByPk(certificationId);
         if (!certification) {
             return res.status(404).json({
                 success: false,
@@ -48,8 +49,10 @@ const addBookmark = async (req, res) => {
 
         // Check if already bookmarked
         const existingBookmark = await Bookmark.findOne({
-            userId: req.user._id,
-            certificationId,
+            where: {
+                userId: req.user.id,
+                certificationId,
+            },
         });
 
         if (existingBookmark) {
@@ -61,15 +64,12 @@ const addBookmark = async (req, res) => {
 
         // Create bookmark
         const bookmark = await Bookmark.create({
-            userId: req.user._id,
+            userId: req.user.id,
             certificationId,
         });
 
         // Send bookmark confirmation email (async)
         sendBookmarkEmail(req.user, certification).catch(console.error);
-
-        // Populate certification data
-        await bookmark.populate('certificationId');
 
         res.status(201).json({
             success: true,
@@ -80,15 +80,6 @@ const addBookmark = async (req, res) => {
         });
     } catch (error) {
         console.error('AddBookmark error:', error);
-
-        // Handle duplicate key error
-        if (error.code === 11000) {
-            return res.status(400).json({
-                success: false,
-                message: 'Certification already bookmarked',
-            });
-        }
-
         res.status(500).json({
             success: false,
             message: 'Server error while adding bookmark',
@@ -101,9 +92,11 @@ const addBookmark = async (req, res) => {
 // @access  Private
 const removeBookmark = async (req, res) => {
     try {
-        const bookmark = await Bookmark.findOneAndDelete({
-            userId: req.user._id,
-            certificationId: req.params.certId,
+        const bookmark = await Bookmark.findOne({
+            where: {
+                userId: req.user.id,
+                certificationId: req.params.certId,
+            },
         });
 
         if (!bookmark) {
@@ -112,6 +105,8 @@ const removeBookmark = async (req, res) => {
                 message: 'Bookmark not found',
             });
         }
+
+        await bookmark.destroy();
 
         res.json({
             success: true,
@@ -132,8 +127,10 @@ const removeBookmark = async (req, res) => {
 const checkBookmark = async (req, res) => {
     try {
         const bookmark = await Bookmark.findOne({
-            userId: req.user._id,
-            certificationId: req.params.certId,
+            where: {
+                userId: req.user.id,
+                certificationId: req.params.certId,
+            },
         });
 
         res.json({

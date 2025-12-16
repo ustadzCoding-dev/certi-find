@@ -205,12 +205,12 @@ const team = [
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
               <RouterLink to="/catalog">
-                <AppButton variant="secondary" size="lg" class="bg-white text-accent-primary hover:bg-white/90">
+                <AppButton size="lg" class="bg-white text-accent-primary font-semibold hover:bg-white/90 transition-all">
                   Browse Certifications
                 </AppButton>
               </RouterLink>
               <RouterLink to="/register">
-                <AppButton variant="ghost" size="lg" class="text-white border-white/30 hover:bg-white/10">
+                <AppButton size="lg" class="bg-white/20 text-white border border-white/50 font-semibold hover:bg-white/30 transition-all">
                   Create Account
                 </AppButton>
               </RouterLink>

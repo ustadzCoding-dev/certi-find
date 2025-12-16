@@ -12,9 +12,7 @@
         "certification",
         "education",
         "api",
-        "nodejs",
-        "express",
-        "mongodb"
+        "nodejs"
     ],
     "author": "",
     "license": "MIT",
@@ -25,7 +23,8 @@
         "express": "^4.18.2",
         "joi": "^17.11.0",
         "jsonwebtoken": "^9.0.2",
-        "mongoose": "^8.0.3",
+        "sequelize": "^6.35.2",
+        "sqlite3": "^5.1.6",
         "nodemailer": "^6.9.7"
     },
     "devDependencies": {

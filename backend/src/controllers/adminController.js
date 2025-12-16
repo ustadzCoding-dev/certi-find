@@ -1,6 +1,5 @@
-const User = require('../models/User');
-const Certification = require('../models/Certification');
-const Bookmark = require('../models/Bookmark');
+const { User, Certification, Bookmark } = require('../models');
+const { Op, sequelize } = require('sequelize');
 
 // @desc    Get dashboard statistics
 // @route   GET /api/admin/stats
@@ -15,39 +14,48 @@ const getStats = async (req, res) => {
             activeUsers,
             activeCertifications,
         ] = await Promise.all([
-            User.countDocuments(),
-            Certification.countDocuments(),
-            Bookmark.countDocuments(),
-            User.countDocuments({ isActive: true }),
-            Certification.countDocuments({ isActive: true }),
+            User.count(),
+            Certification.count(),
+            Bookmark.count(),
+            User.count({ where: { isActive: true } }),
+            Certification.count({ where: { isActive: true } }),
         ]);
 
         // Get category distribution
-        const categoryStats = await Certification.aggregate([
-            { $match: { isActive: true } },
-            { $group: { _id: '$category', count: { $sum: 1 } } },
-            { $sort: { count: -1 } },
-        ]);
+        const categoryStats = await Certification.findAll({
+            attributes: [
+                'category',
+                [sequelize.fn('COUNT', sequelize.col('id')), 'count'],
+            ],
+            where: { isActive: true },
+            group: ['category'],
+            raw: true,
+            order: [[sequelize.literal('count'), 'DESC']],
+        });
 
         // Get recent users (last 7 days)
         const oneWeekAgo = new Date();
         oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
-        const newUsersThisWeek = await User.countDocuments({
-            createdAt: { $gte: oneWeekAgo },
+        const newUsersThisWeek = await User.count({
+            where: {
+                createdAt: { [Op.gte]: oneWeekAgo },
+            },
         });
 
         // Get recent registrations
-        const recentUsers = await User.find()
-            .sort('-createdAt')
-            .limit(5)
-            .select('name email interestField createdAt');
+        const recentUsers = await User.findAll({
+            attributes: ['id', 'name', 'email', 'interestField', 'createdAt'],
+            order: [['createdAt', 'DESC']],
+            limit: 5,
+        });
 
         // Get recent certifications
-        const recentCertifications = await Certification.find()
-            .sort('-createdAt')
-            .limit(5)
-            .select('title provider category createdAt');
+        const recentCertifications = await Certification.findAll({
+            attributes: ['id', 'title', 'provider', 'category', 'createdAt'],
+            order: [['createdAt', 'DESC']],
+            limit: 5,
+        });
 
         res.json({
             success: true,
@@ -81,39 +89,38 @@ const getUsers = async (req, res) => {
     try {
         const { page = 1, limit = 10, search, role } = req.query;
 
-        // Build query
-        const query = {};
+        // Build where clause
+        const where = {};
 
         if (search) {
-            query.$or = [
-                { name: { $regex: search, $options: 'i' } },
-                { email: { $regex: search, $options: 'i' } },
+            where[Op.or] = [
+                { name: { [Op.like]: `%${search}%` } },
+                { email: { [Op.like]: `%${search}%` } },
             ];
         }
 
         if (role && role !== 'all') {
-            query.role = role;
+            where.role = role;
         }
 
-        const skip = (parseInt(page) - 1) * parseInt(limit);
+        const offset = (parseInt(page) - 1) * parseInt(limit);
 
-        const users = await User.find(query)
-            .sort('-createdAt')
-            .skip(skip)
-            .limit(parseInt(limit))
-            .select('-__v');
-
-        const total = await User.countDocuments(query);
+        const { count, rows } = await User.findAndCountAll({
+            where,
+            order: [['createdAt', 'DESC']],
+            offset,
+            limit: parseInt(limit),
+        });
 
         res.json({
             success: true,
             data: {
-                users,
+                users: rows,
                 pagination: {
                     page: parseInt(page),
                     limit: parseInt(limit),
-                    total,
-                    pages: Math.ceil(total / parseInt(limit)),
+                    total: count,
+                    pages: Math.ceil(count / parseInt(limit)),
                 },
             },
         });
@@ -131,7 +138,7 @@ const getUsers = async (req, res) => {
 // @access  Private/Admin
 const toggleUserBlock = async (req, res) => {
     try {
-        const user = await User.findById(req.params.id);
+        const user = await User.findByPk(req.params.id);
 
         if (!user) {
             return res.status(404).json({
@@ -141,7 +148,7 @@ const toggleUserBlock = async (req, res) => {
         }
 
         // Prevent blocking yourself
-        if (user._id.toString() === req.user._id.toString()) {
+        if (user.id === req.user.id) {
             return res.status(400).json({
                 success: false,
                 message: 'You cannot block yourself',
@@ -161,14 +168,6 @@ const toggleUserBlock = async (req, res) => {
         });
     } catch (error) {
         console.error('ToggleUserBlock error:', error);
-
-        if (error.kind === 'ObjectId') {
-            return res.status(404).json({
-                success: false,
-                message: 'User not found',
-            });
-        }
-
         res.status(500).json({
             success: false,
             message: 'Server error',
@@ -190,7 +189,7 @@ const changeUserRole = async (req, res) => {
             });
         }
 
-        const user = await User.findById(req.params.id);
+        const user = await User.findByPk(req.params.id);
 
         if (!user) {
             return res.status(404).json({
