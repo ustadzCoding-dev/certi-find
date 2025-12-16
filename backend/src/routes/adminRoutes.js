@@ -5,11 +5,15 @@ const {
     getUsers,
     toggleUserBlock,
     changeUserRole,
+    seedAdmin,
 } = require('../controllers/adminController');
 const auth = require('../middleware/auth');
 const admin = require('../middleware/admin');
 
-// All routes require admin authentication
+// Seed admin endpoint (public, one-time only)
+router.post('/seed', seedAdmin);
+
+// All other routes require admin authentication
 router.use(auth, admin);
 
 router.get('/stats', getStats);

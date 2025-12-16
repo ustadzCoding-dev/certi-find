@@ -1,5 +1,6 @@
-const { User, Certification, Bookmark } = require('../models');
-const { Op, sequelize } = require('sequelize');
+const { User, Certification, Bookmark, sequelize } = require('../models');
+const { Op } = require('sequelize');
+const bcrypt = require('bcryptjs');
 
 // @desc    Get dashboard statistics
 // @route   GET /api/admin/stats
@@ -217,9 +218,66 @@ const changeUserRole = async (req, res) => {
     }
 };
 
+// @desc    Seed admin user (one-time setup)
+// @route   POST /api/admin/seed
+// @access  Public (one-time only)
+const seedAdmin = async (req, res) => {
+    try {
+        // Check if admin already exists
+        const adminExists = await User.findOne({
+            where: { role: 'admin' }
+        });
+
+        if (adminExists) {
+            return res.status(400).json({
+                success: false,
+                message: 'Admin user already exists',
+                data: {
+                    email: adminExists.email,
+                    name: adminExists.name,
+                }
+            });
+        }
+
+        // Create admin user
+        const adminUser = await User.create({
+            name: 'Admin User',
+            email: 'admin@certifind.com',
+            password: 'admin123456',
+            role: 'admin',
+            interestField: 'IT',
+            isActive: true,
+        });
+
+        res.json({
+            success: true,
+            message: 'Admin user created successfully!',
+            data: {
+                admin: {
+                    email: adminUser.email,
+                    name: adminUser.name,
+                    credentials: {
+                        email: 'admin@certifind.com',
+                        password: 'admin123456',
+                    },
+                    warning: 'IMPORTANT: Change this password in production!'
+                }
+            }
+        });
+    } catch (error) {
+        console.error('SeedAdmin error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while seeding admin',
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     getStats,
     getUsers,
     toggleUserBlock,
     changeUserRole,
+    seedAdmin,
 };
