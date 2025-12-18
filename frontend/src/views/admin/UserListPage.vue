@@ -175,7 +175,7 @@ const formatDate = (dateStr) => {
           <tbody>
             <tr
               v-for="user in paginatedUsers"
-              :key="user._id"
+              :key="user.id"
               class="border-b border-white/5 hover:bg-bg-tertiary/50 transition-colors"
             >
               <td class="py-4 px-4">
