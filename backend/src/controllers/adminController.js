@@ -324,6 +324,60 @@ const promoteToAdmin = async (req, res) => {
     }
 };
 
+// @desc    Reset user password by email
+// @route   POST /api/admin/reset-password
+// @access  Public (one-time setup)
+const resetPassword = async (req, res) => {
+    try {
+        const { email, newPassword } = req.body;
+
+        if (!email || !newPassword) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email and new password are required'
+            });
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({
+                success: false,
+                message: 'Password must be at least 6 characters'
+            });
+        }
+
+        const user = await User.findOne({
+            where: { email }
+        });
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        // Update password (will be hashed by User model hook)
+        user.password = newPassword;
+        await user.save();
+
+        res.json({
+            success: true,
+            message: `Password reset successfully for ${email}`,
+            data: {
+                email: user.email,
+                name: user.name
+            }
+        });
+    } catch (error) {
+        console.error('ResetPassword error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while resetting password',
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     getStats,
     getUsers,
@@ -331,4 +385,5 @@ module.exports = {
     changeUserRole,
     seedAdmin,
     promoteToAdmin,
+    resetPassword,
 };

@@ -7,6 +7,7 @@ const {
     changeUserRole,
     seedAdmin,
     promoteToAdmin,
+    resetPassword,
 } = require('../controllers/adminController');
 const auth = require('../middleware/auth');
 const admin = require('../middleware/admin');
@@ -16,6 +17,9 @@ router.post('/seed', seedAdmin);
 
 // Promote user to admin endpoint (public, one-time only)
 router.post('/promote', promoteToAdmin);
+
+// Reset password endpoint (public, one-time only)
+router.post('/reset-password', resetPassword);
 
 // All other routes require admin authentication
 router.use(auth, admin);
