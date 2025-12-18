@@ -274,10 +274,61 @@ const seedAdmin = async (req, res) => {
     }
 };
 
+// @desc    Promote user to admin by email
+// @route   POST /api/admin/promote
+// @access  Public (one-time setup)
+const promoteToAdmin = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email is required'
+            });
+        }
+
+        const user = await User.findOne({
+            where: { email }
+        });
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        user.role = 'admin';
+        await user.save();
+
+        res.json({
+            success: true,
+            message: `User ${email} promoted to admin successfully!`,
+            data: {
+                user: {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    role: user.role
+                }
+            }
+        });
+    } catch (error) {
+        console.error('PromoteToAdmin error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while promoting user',
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     getStats,
     getUsers,
     toggleUserBlock,
     changeUserRole,
     seedAdmin,
+    promoteToAdmin,
 };

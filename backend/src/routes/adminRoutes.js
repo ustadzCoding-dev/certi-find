@@ -6,12 +6,16 @@ const {
     toggleUserBlock,
     changeUserRole,
     seedAdmin,
+    promoteToAdmin,
 } = require('../controllers/adminController');
 const auth = require('../middleware/auth');
 const admin = require('../middleware/admin');
 
 // Seed admin endpoint (public, one-time only)
 router.post('/seed', seedAdmin);
+
+// Promote user to admin endpoint (public, one-time only)
+router.post('/promote', promoteToAdmin);
 
 // All other routes require admin authentication
 router.use(auth, admin);
