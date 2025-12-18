@@ -178,15 +178,6 @@ const handleSubmit = async () => {
           </RouterLink>
         </p>
       </div>
-
-      <!-- Demo Hint -->
-      <div class="mt-4 p-4 bg-accent-primary/10 rounded-lg border border-accent-primary/20 text-center">
-        <p class="text-sm text-text-secondary">
-          <span class="text-accent-primary font-medium">Demo Accounts:</span><br>
-          Admin: admin@certifind.com / admin123<br>
-          User: demo@certifind.com / demo123
-        </p>
-      </div>
     </div>
   </div>
 </template>
