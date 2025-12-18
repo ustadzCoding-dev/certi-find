@@ -56,7 +56,7 @@ const totalPages = computed(() => Math.ceil(filteredUsers.value.length / itemsPe
 
 const toggleUserStatus = async (user) => {
   try {
-    await api.put(`/admin/users/${user._id}/block`)
+    await api.put(`/admin/users/${user.id}/block`)
     user.isActive = !user.isActive
     toast.success(`User ${user.isActive ? 'unblocked' : 'blocked'}`)
   } catch (error) {
@@ -66,7 +66,7 @@ const toggleUserStatus = async (user) => {
 
 const changeRole = async (user, newRole) => {
   try {
-    await api.put(`/admin/users/${user._id}/role`, { role: newRole })
+    await api.put(`/admin/users/${user.id}/role`, { role: newRole })
     user.role = newRole
     toast.success(`User role changed to ${newRole}`)
   } catch (error) {
