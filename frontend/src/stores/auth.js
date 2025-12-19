@@ -46,19 +46,9 @@ export const useAuthStore = defineStore('auth', {
             this.loading = true
             this.error = null
             try {
-                console.log('--- STARTING LOGIN ---');
-                console.log('Credentials sent to API:', credentials);
-
                 const response = await api.post('/auth/login', credentials)
-
-                console.log('API Response Received:', response.data);
-
                 this.token = response.data.data.token
                 this.user = response.data.data.user
-
-                console.log('User object set in store:', this.user);
-                console.log('--- LOGIN FINISHED ---');
-
                 localStorage.setItem('certifind_token', this.token)
                 return response.data
             } catch (error) {
