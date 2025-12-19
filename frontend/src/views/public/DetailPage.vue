@@ -41,7 +41,7 @@ onMounted(async () => {
 
 const isBookmarked = computed(() => {
   if (!certification.value) return false
-  return bookmarkStore.isBookmarked(certification.value._id)
+  return bookmarkStore.isBookmarked(certification.value.id)
 })
 
 const handleBookmark = async () => {
@@ -52,7 +52,7 @@ const handleBookmark = async () => {
   }
   
   try {
-    const added = await bookmarkStore.toggleBookmark(certification.value._id)
+    const added = await bookmarkStore.toggleBookmark(certification.value.id)
     if (added) {
       toast.success('Added to bookmarks!')
     } else {

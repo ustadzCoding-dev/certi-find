@@ -48,7 +48,7 @@ const levelColors = {
       <div v-if="bookmarks.length > 0" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div
           v-for="bookmark in bookmarks"
-          :key="bookmark._id"
+          :key="bookmark.id"
           class="card card-hover group"
         >
           <!-- Thumbnail -->
@@ -69,7 +69,7 @@ const levelColors = {
             
             <!-- Remove button -->
             <button
-              @click="removeBookmark(bookmark.certificationId._id)"
+              @click="removeBookmark(bookmark.certificationId.id)"
               class="absolute top-3 right-3 w-9 h-9 rounded-full bg-red-500/80 backdrop-blur-sm flex items-center justify-center text-white hover:bg-red-500 transition-all opacity-0 group-hover:opacity-100"
             >
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -80,7 +80,7 @@ const levelColors = {
 
           <!-- Content -->
           <div class="p-5">
-            <RouterLink :to="`/certification/${bookmark.certificationId._id}`">
+            <RouterLink :to="`/certification/${bookmark.certificationId.id}`">
               <h3 class="text-lg font-semibold text-white mb-2 line-clamp-2 group-hover:text-accent-primary transition-colors">
                 {{ bookmark.certificationId.title }}
               </h3>
@@ -108,7 +108,7 @@ const levelColors = {
 
             <!-- Actions -->
             <div class="mt-4 pt-4 border-t border-white/5 flex gap-2">
-              <RouterLink :to="`/certification/${bookmark.certificationId._id}`" class="flex-1">
+              <RouterLink :to="`/certification/${bookmark.certificationId.id}`" class="flex-1">
                 <AppButton variant="primary" size="sm" block>
                   View Details
                 </AppButton>
@@ -116,7 +116,7 @@ const levelColors = {
               <AppButton
                 variant="ghost"
                 size="sm"
-                @click="removeBookmark(bookmark.certificationId._id)"
+                @click="removeBookmark(bookmark.certificationId.id)"
               >
                 <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

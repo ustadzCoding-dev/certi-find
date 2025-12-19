@@ -183,7 +183,7 @@ const hasActiveFilters = computed(() => {
             <div v-if="filteredCertifications.length" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               <CertCard
                 v-for="cert in filteredCertifications"
-                :key="cert._id"
+                :key="cert.id"
                 :certification="cert"
               />
             </div>

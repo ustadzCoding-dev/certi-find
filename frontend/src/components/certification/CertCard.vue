@@ -23,7 +23,7 @@ const bookmarkStore = useBookmarkStore()
 const toast = useToast()
 
 const isBookmarked = computed(() => {
-  return bookmarkStore.isBookmarked(props.certification._id)
+  return bookmarkStore.isBookmarked(props.certification.id)
 })
 
 const levelColors = {
@@ -39,13 +39,13 @@ const handleBookmark = async () => {
   }
   
   try {
-    const added = await bookmarkStore.toggleBookmark(props.certification._id)
+    const added = await bookmarkStore.toggleBookmark(props.certification.id)
     if (added) {
       toast.success('Added to bookmarks!')
     } else {
       toast.info('Removed from bookmarks')
     }
-    emit('bookmark', props.certification._id)
+    emit('bookmark', props.certification.id)
   } catch (error) {
     toast.error('Failed to update bookmark')
   }
@@ -103,7 +103,7 @@ const thumbnailUrl = computed(() => {
     <!-- Content -->
     <div class="p-5">
       <!-- Title -->
-      <RouterLink :to="`/certification/${certification._id}`">
+      <RouterLink :to="`/certification/${certification.id}`">
         <h3 class="text-lg font-semibold text-white mb-2 line-clamp-2 group-hover:text-accent-primary transition-colors">
           {{ certification.title }}
         </h3>

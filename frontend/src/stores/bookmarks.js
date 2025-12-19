@@ -9,11 +9,11 @@ export const useBookmarkStore = defineStore('bookmarks', {
     }),
 
     getters: {
-        bookmarkedIds: (state) => state.bookmarks.map(b => b.certificationId?._id || b.certificationId),
+        bookmarkedIds: (state) => state.bookmarks.map(b => b.certificationId?.id || b.certificationId),
 
         isBookmarked: (state) => (certId) => {
             return state.bookmarks.some(b =>
-                (b.certificationId?._id || b.certificationId) === certId
+                (b.certificationId?.id || b.certificationId) === certId
             )
         },
 
@@ -56,7 +56,7 @@ export const useBookmarkStore = defineStore('bookmarks', {
                 await api.delete(`/bookmarks/${certificationId}`)
                 // Remove from local state
                 this.bookmarks = this.bookmarks.filter(b =>
-                    (b.certificationId?._id || b.certificationId) !== certificationId
+                    (b.certificationId?.id || b.certificationId) !== certificationId
                 )
             } catch (error) {
                 this.error = error.response?.data?.message || 'Failed to remove bookmark'

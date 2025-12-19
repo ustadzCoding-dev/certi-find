@@ -140,7 +140,7 @@ export const useCertificationStore = defineStore('certifications', {
             this.loading = true
             try {
                 const response = await api.post('/certifications', certData)
-                this.certifications.unshift(response.data.data)
+                this.certifications.unshift(response.data.data.certification)
                 return response.data
             } catch (error) {
                 this.error = error.response?.data?.message || 'Failed to create certification'
@@ -154,9 +154,9 @@ export const useCertificationStore = defineStore('certifications', {
             this.loading = true
             try {
                 const response = await api.put(`/certifications/${id}`, certData)
-                const index = this.certifications.findIndex(c => c._id === id)
+                const index = this.certifications.findIndex(c => c.id === id)
                 if (index !== -1) {
-                    this.certifications[index] = response.data.data
+                    this.certifications[index] = response.data.data.certification
                 }
                 return response.data
             } catch (error) {
@@ -171,7 +171,7 @@ export const useCertificationStore = defineStore('certifications', {
             this.loading = true
             try {
                 await api.delete(`/certifications/${id}`)
-                this.certifications = this.certifications.filter(c => c._id !== id)
+                this.certifications = this.certifications.filter(c => c.id !== id)
             } catch (error) {
                 this.error = error.response?.data?.message || 'Failed to delete certification'
                 throw error

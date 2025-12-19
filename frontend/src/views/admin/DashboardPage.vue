@@ -59,7 +59,7 @@ const categoryStats = computed(() => {
   if (!dashboardData.value?.categoryStats) return []
   const total = dashboardData.value.categoryStats.reduce((sum, c) => sum + c.count, 0)
   return dashboardData.value.categoryStats.map(cat => ({
-    name: cat._id,
+    name: cat.id,
     count: cat.count,
     percentage: total > 0 ? Math.round((cat.count / total) * 100) : 0
   }))
@@ -80,7 +80,7 @@ const recentUsers = computed(() => {
 const recentCerts = computed(() => {
   if (!dashboardData.value?.recentCertifications) return []
   return dashboardData.value.recentCertifications.map(cert => ({
-    _id: cert._id,
+    _id: cert.id,
     title: cert.title,
     provider: cert.provider,
     date: new Date(cert.createdAt).toLocaleDateString()

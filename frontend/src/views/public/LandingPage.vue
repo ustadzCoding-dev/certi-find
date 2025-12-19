@@ -201,7 +201,7 @@ const stats = computed(() => [
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div
             v-for="cert in featuredCerts"
-            :key="cert._id"
+            :key="cert.id"
             class="card card-hover group overflow-hidden"
           >
             <!-- Thumbnail -->

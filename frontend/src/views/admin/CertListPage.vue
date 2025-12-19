@@ -51,7 +51,7 @@ const totalPages = computed(() => Math.ceil(filteredCertifications.value.length 
 
 const toggleStatus = async (cert) => {
   try {
-    await api.put(`/certifications/${cert._id}`, { isActive: !cert.isActive })
+    await api.put(`/certifications/${cert.id}`, { isActive: !cert.isActive })
     cert.isActive = !cert.isActive
     toast.success(`Certification ${cert.isActive ? 'activated' : 'deactivated'}`)
   } catch (error) {
@@ -136,7 +136,7 @@ const levelColors = {
           <tbody>
             <tr
               v-for="cert in paginatedCertifications"
-              :key="cert._id"
+              :key="cert.id"
               class="border-b border-white/5 hover:bg-bg-tertiary/50 transition-colors"
             >
               <td class="py-4 px-4">
@@ -167,7 +167,7 @@ const levelColors = {
               <td class="py-4 px-4">
                 <div class="flex items-center justify-end gap-2">
                   <RouterLink
-                    :to="`/admin/certifications/edit/${cert._id}`"
+                    :to="`/admin/certifications/edit/${cert.id}`"
                     class="p-2 text-text-secondary hover:text-accent-primary transition-colors"
                   >
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -175,7 +175,7 @@ const levelColors = {
                     </svg>
                   </RouterLink>
                   <button
-                    @click="deleteCertification(cert._id)"
+                    @click="deleteCertification(cert.id)"
                     class="p-2 text-text-secondary hover:text-red-400 transition-colors"
                   >
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
