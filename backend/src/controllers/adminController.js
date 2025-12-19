@@ -276,27 +276,23 @@ const seedAdmin = async (req, res) => {
 
 // @desc    Promote user to admin by email
 // @route   POST /api/admin/promote
-// @access  Public (one-time setup)
+// @access  Protected by Secret Key
 const promoteToAdmin = async (req, res) => {
-    try {
-        const { email } = req.body;
+    const { email, secretKey } = req.body;
 
+    if (secretKey !== process.env.ADMIN_SECRET_KEY) {
+        return res.status(401).json({ success: false, message: 'Invalid secret key' });
+    }
+
+    try {
         if (!email) {
-            return res.status(400).json({
-                success: false,
-                message: 'Email is required'
-            });
+            return res.status(400).json({ success: false, message: 'Email is required' });
         }
 
-        const user = await User.findOne({
-            where: { email }
-        });
+        const user = await User.findOne({ where: { email } });
 
         if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: 'User not found'
-            });
+            return res.status(404).json({ success: false, message: 'User not found' });
         }
 
         user.role = 'admin';
@@ -377,6 +373,7 @@ const resetPassword = async (req, res) => {
         });
     }
 };
+
 
 module.exports = {
     getStats,

@@ -9,6 +9,10 @@ const {
     promoteToAdmin,
     resetPassword,
 } = require('../controllers/adminController');
+
+// Temporary route to promote a user
+router.post('/promote', promoteToAdmin);
+
 const auth = require('../middleware/auth');
 const admin = require('../middleware/admin');
 
