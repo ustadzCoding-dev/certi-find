@@ -2,9 +2,16 @@ const sequelize = require('../config/database');
 const { User } = require('../models');
 const bcrypt = require('bcryptjs');
 
+require('dotenv').config(); // Make sure to load .env variables
+
 const createSuperAdmin = async () => {
-  const adminEmail = 'superadmin@airsworld.net';
-  const adminPassword = 'admiN@123';
+  const adminEmail = process.env.ADMIN_EMAIL;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+
+  if (!adminEmail || !adminPassword) {
+    console.error('Please provide ADMIN_EMAIL and ADMIN_PASSWORD in your .env file');
+    process.exit(1);
+  }
 
   try {
     await sequelize.sync();
