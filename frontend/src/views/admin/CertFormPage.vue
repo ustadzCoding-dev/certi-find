@@ -34,6 +34,13 @@ const form = ref({
 
 const errors = ref({})
 
+const isThumbnailValid = computed(() => {
+  if (!form.value.thumbnail) return true; // It's valid if empty
+  const validExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
+  const lowercasedUrl = form.value.thumbnail.toLowerCase();
+  return validExtensions.some(ext => lowercasedUrl.endsWith(ext));
+});
+
 const categories = ['IT', 'Data Science', 'Business', 'Design', 'Marketing', 'Other']
 const levels = ['Beginner', 'Intermediate', 'Advanced']
 
@@ -276,9 +283,14 @@ const handleSubmit = async () => {
                 label="Thumbnail URL"
                 placeholder="https://..."
               />
+              <p class="mt-1 text-xs text-text-muted">Use a direct image link (e.g., from Imgur) ending in .jpg, .png, etc.</p>
+              <p v-if="form.thumbnail && !isThumbnailValid" class="mt-1 text-sm text-amber-400">URL might not be a direct image link. Preview may not work.</p>
               
               <div v-if="form.thumbnail" class="aspect-video rounded-lg overflow-hidden bg-bg-tertiary">
-                <img :src="form.thumbnail" alt="Thumbnail preview" class="w-full h-full object-cover" />
+                <img v-if="isThumbnailValid" :src="form.thumbnail" alt="Thumbnail preview" class="w-full h-full object-cover" />
+                <div v-else class="w-full h-full flex items-center justify-center">
+                  <p class="text-amber-400 text-sm">Invalid or indirect URL</p>
+                </div>
               </div>
               
               <div v-else class="aspect-video rounded-lg bg-bg-tertiary flex items-center justify-center">
