@@ -1,5 +1,6 @@
 const sequelize = require('../config/database');
 const { User } = require('../models');
+const bcrypt = require('bcryptjs');
 
 const createSuperAdmin = async () => {
   const adminEmail = 'superadmin@airsworld.net';
@@ -8,22 +9,23 @@ const createSuperAdmin = async () => {
   try {
     await sequelize.sync();
 
-    const [user, created] = await User.findOrCreate({
-      where: { email: adminEmail },
-      defaults: {
-        name: 'Super Admin',
-        email: adminEmail,
-        password: adminPassword,
-        role: 'admin',
-        isActive: true
-      }
+    // Find and delete existing user to ensure password gets hashed
+    const existingUser = await User.findOne({ where: { email: adminEmail } });
+    if (existingUser) {
+      await existingUser.destroy();
+      console.log(`Removed existing user ${adminEmail}.`);
+    }
+
+    // Create the super admin
+    await User.create({
+      name: 'Super Admin',
+      email: adminEmail,
+      password: adminPassword, // The hook will now hash this correctly
+      role: 'admin',
+      isActive: true
     });
 
-    if (created) {
-      console.log(`Super admin account ${adminEmail} created successfully.`);
-    } else {
-      console.log(`Super admin account ${adminEmail} already exists.`);
-    }
+    console.log(`Super admin account ${adminEmail} created successfully.`);
 
   } catch (error) {
     console.error('Error creating super admin:', error);
