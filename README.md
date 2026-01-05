@@ -235,5 +235,3 @@ MIT License - Lihat file LICENSE untuk detail
 Kontribusi sangat diterima! Silakan buat pull request dengan perubahan Anda.
 
 ---
-
-**Dibuat dengan ❤️ oleh CertiFind Team**
